@@ -56,11 +56,17 @@ module RouteDowncaser
 
     def downcased_uri(uri)
       return nil unless uri.present?
-      if has_querystring?(uri)
-        "#{path(uri).mb_chars.downcase}?#{querystring(uri)}"
-      else
-        path(uri).mb_chars.downcase
+      parts       = path(uri).mb_chars.split('/')
+      transformed = parts.map do |part|
+        if part.size == 34 # for sids
+          part.downcase
+        else
+          underscore(part)
+        end
       end
+      new_path  = transformed.join('/')
+      new_path += "?#{querystring(uri)}" if has_querystring?(uri)
+      new_path
     end
 
     def path(uri)
@@ -82,6 +88,15 @@ module RouteDowncaser
     def redirect_header(uri)
       [301, {'Location' => uri, 'Content-Type' => 'text/html'}, []]
     end
+
+    def underscore(str)
+      str.gsub(/::/, '/').
+      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+      gsub(/([a-z\d])([A-Z])/,'\1_\2').
+      downcase
+      # tr("-", "_"). # not needed for dates
+    end
+
   end
 
 end
