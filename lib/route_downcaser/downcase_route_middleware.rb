@@ -58,8 +58,8 @@ module RouteDowncaser
       return nil unless uri.present?
       parts       = path(uri).mb_chars.split('/')
       transformed = parts.map do |part|
-        if part.size == 34 # for sids
-          part.downcase
+        if part.size == 34 # don't change Sids
+          part
         else
           underscore(part)
         end
